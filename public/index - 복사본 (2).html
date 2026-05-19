@@ -24,60 +24,20 @@ h1{
     margin-bottom:40px;
 }
 
-.person{
-
-    display:inline-block;
-
-    margin:20px;
-
-}
-
 button{
-
     width:220px;
     height:90px;
-
     font-size:28px;
-
+    margin:25px;
     border:none;
     border-radius:15px;
-
     background:#1976d2;
-
     color:white;
-
     cursor:pointer;
-
 }
 
 button:hover{
-
     background:#0d47a1;
-
-}
-
-.status-box{
-
-    margin-top:10px;
-
-    font-size:22px;
-
-}
-
-.status-btn{
-
-    cursor:pointer;
-
-    margin:0 10px;
-
-    user-select:none;
-
-}
-
-.active-status{
-
-    font-weight:bold;
-
 }
 
 #display{
@@ -90,12 +50,10 @@ button:hover{
     background:#222;
 
     display:flex;
-
     justify-content:center;
     align-items:center;
 
     font-size:120px;
-
     font-weight:bold;
 
     transition:0.3s;
@@ -154,6 +112,10 @@ button:hover{
 
     font-size:18px;
 
+    position:relative;
+
+    z-index:10000;
+
 }
 
 .ok-btn{
@@ -165,129 +127,25 @@ button:hover{
 
     font-size:18px;
 
+    position:relative;
+
+    z-index:10000;
+
 }
 
 </style>
 
 </head>
-
 <body>
 
 <h1>케이윈 알람 시스템</h1>
 
 <div class="buttons">
 
-<div class="person">
-
-<button onclick="callBell('김은하 실장')">
-김은하 실장
-</button>
-
-<div class="status-box">
-
-<span id="김은하 실장_in"
-class="status-btn active-status"
-onclick="setStatus('김은하 실장','in')">
-
-🟢 재실
-
-</span>
-
-<span id="김은하 실장_out"
-class="status-btn"
-onclick="setStatus('김은하 실장','out')">
-
-⚪ 부재중
-
-</span>
-
-</div>
-
-</div>
-
-<div class="person">
-
-<button onclick="callBell('이유빈 과장')">
-이유빈 과장
-</button>
-
-<div class="status-box">
-
-<span id="이유빈 과장_in"
-class="status-btn active-status"
-onclick="setStatus('이유빈 과장','in')">
-
-🟢 재실
-
-</span>
-
-<span id="이유빈 과장_out"
-class="status-btn"
-onclick="setStatus('이유빈 과장','out')">
-
-⚪ 부재중
-
-</span>
-
-</div>
-
-</div>
-
-<div class="person">
-
-<button onclick="callBell('김나리 과장')">
-김나리 과장
-</button>
-
-<div class="status-box">
-
-<span id="김나리 과장_in"
-class="status-btn active-status"
-onclick="setStatus('김나리 과장','in')">
-
-🟢 재실
-
-</span>
-
-<span id="김나리 과장_out"
-class="status-btn"
-onclick="setStatus('김나리 과장','out')">
-
-⚪ 부재중
-
-</span>
-
-</div>
-
-</div>
-
-<div class="person">
-
-<button onclick="callBell('박규용 과장')">
-박규용 과장
-</button>
-
-<div class="status-box">
-
-<span id="박규용 과장_in"
-class="status-btn active-status"
-onclick="setStatus('박규용 과장','in')">
-
-🟢 재실
-
-</span>
-
-<span id="박규용 과장_out"
-class="status-btn"
-onclick="setStatus('박규용 과장','out')">
-
-⚪ 부재중
-
-</span>
-
-</div>
-
-</div>
+<button onclick="callBell('김은하 실장')">김은하 실장</button>
+<button onclick="callBell('이유빈 과장')">이유빈 과장</button>
+<button onclick="callBell('김나리 과장')">김나리 과장</button>
+<button onclick="callBell('박규용 과장')">박규용 과장</button>
 
 </div>
 
@@ -329,17 +187,7 @@ function callBell(name){
 
 }
 
-function setStatus(name, status){
-
-    socket.emit("setStatus", {
-        name:name,
-        status:status
-    });
-
-}
-
 function confirmCall(){
-
     socket.emit("confirmCall");
 
 }
@@ -349,48 +197,6 @@ function cancelCall(){
     socket.emit("cancelCall");
 
 }
-
-socket.on("updateStatus", (statusData)=>{
-
-    Object.keys(statusData).forEach(name => {
-
-        document.getElementById(name + "_in")
-        .classList.remove("active-status");
-
-        document.getElementById(name + "_out")
-        .classList.remove("active-status");
-if(statusData[name] === "in"){
-
-    document.getElementById(name + "_in")
-    .innerHTML = "🟢 재실";
-
-    document.getElementById(name + "_out")
-    .innerHTML = "⚪ 부재중";
-
-}
-else{
-
-    document.getElementById(name + "_in")
-    .innerHTML = "⚪ 재실";
-
-    document.getElementById(name + "_out")
-    .innerHTML = "🟢 부재중";
-
-}
-    });
-
-});
-
-socket.on("absentCall", (data)=>{
-
-    display.innerHTML =
-    "🚪🚶 " + data.area + "<br>부재중입니다";
-
-    display.classList.remove("active");
-
-    display.style.fontSize = "90px";
-
-});
 
 socket.on("updateCalls", (calls)=>{
 
