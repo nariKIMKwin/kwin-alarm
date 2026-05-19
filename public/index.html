@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>KWIN - 대표님</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:30px;
+    font-family:Arial;
+    background:#111;
+    color:white;
+    text-align:center;
+}
+
+h1{
+    margin-bottom:30px;
+    font-size:50px;
+}
+
+.buttons{
+    margin-bottom:40px;
+}
+
+button{
+    width:220px;
+    height:90px;
+    font-size:28px;
+    margin:25px;
+    border:none;
+    border-radius:15px;
+    background:#1976d2;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0d47a1;
+}
+
+#display{
+
+    width:100%;
+    height:450px;
+
+    border-radius:30px;
+
+    background:#222;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:120px;
+    font-weight:bold;
+
+    transition:0.3s;
+
+    flex-direction:column;
+
+}
+
+.active{
+
+    background:#3a3a3a !important;
+
+    box-shadow:0 0 40px rgba(255,255,255,0.2);
+
+    animation:flash 1s infinite;
+
+}
+
+@keyframes flash{
+
+    0%{
+        opacity:1;
+    }
+
+    50%{
+        opacity:0.5;
+    }
+
+    100%{
+        opacity:1;
+    }
+
+}
+
+.admin-buttons{
+
+    position:fixed;
+
+    right:20px;
+    bottom:20px;
+
+}
+.cancel-btn{
+
+    background:#666;
+    margin-right:10px;
+
+    width:120px;
+    height:50px;
+
+    font-size:18px;
+
+}
+
+.ok-btn{
+
+    background:#2e7d32;
+
+    width:120px;
+    height:50px;
+
+    font-size:18px;
+
+}
+</style>
+
+</head>
+<body>
+
+<h1>케이윈 알람 시스템</h1>
+
+<div class="buttons">
+
+<button onclick="callBell('김은하 실장')">김은하 실장</button>
+<button onclick="callBell('이유빈 과장')">이유빈 과장</button>
+<button onclick="callBell('김나리 과장')">김나리 과장</button>
+<button onclick="callBell('박규용 과장')">박규용 과장</button>
+
+</div>
+
+<div id="display">
+
+대기중
+
+</div>
+
+<div class="admin-buttons">
+
+<button class="cancel-btn" onclick="cancelCall()">
+호출 취소
+</button>
+
+<button class="ok-btn" onclick="confirmCall()">
+호출 확인
+</button>
+
+</div>
+
+<audio id="bellSound">
+    <source src="bell.mp3" type="audio/mpeg">
+</audio>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+const socket = io();
+
+const display = document.getElementById("display");
+
+const bellSound = document.getElementById("bellSound");
+
+function callBell(name){
+
+    socket.emit("callBell", name);
+
+}
+
+function confirmCall(){
+
+    socket.emit("confirmCall");
+
+}
+
+function cancelCall(){
+
+    socket.emit("cancelCall");
+
+}
+
+socket.on("updateCalls", (calls)=>{
+
+    if(calls.length === 0){
+
+        display.innerHTML = "대기중";
+
+        display.classList.remove("active");
+
+        display.style.fontSize = "120px";
+
+        return;
+
+    }
+
+    let html = "";
+
+    calls.forEach(call => {
+
+        html +=
+        "🔔 " + call.area + " 🔔<br>";
+
+    });
+
+    display.innerHTML = html;
+
+    if(calls.length == 1){
+
+        display.style.fontSize = "120px";
+
+    }
+    else if(calls.length == 2){
+
+        display.style.fontSize = "90px";
+
+    }
+    else if(calls.length >= 3){
+
+        display.style.fontSize = "65px";
+
+    }
+
+    display.classList.add("active");
+
+    bellSound.currentTime = 0;
+
+    bellSound.play().catch(()=>{});
+
+});
+
+socket.on("cancelCall", ()=>{
+
+    display.innerHTML = "호출 취소";
+
+    display.classList.remove("active");
+
+    display.style.fontSize = "100px";
+
+    setTimeout(()=>{
+
+        display.innerHTML = "대기중";
+
+    }, 3000);
+
+});
+
+</script>
+
+</body>
+</html>
