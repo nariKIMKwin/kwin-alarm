@@ -23,28 +23,34 @@ io.on("connection", (socket) => {
         }
 
         const item = {
-            area: area
+            area: area,
+            status: "call"
         };
 
         currentCalls.push(item);
 
         io.emit("updateCalls", currentCalls);
 
-        setTimeout(() => {
-
-            currentCalls = currentCalls.filter(c => c.area !== area);
-
-            io.emit("updateCalls", currentCalls);
-
-        }, 10000);
-
     });
 
     socket.on("confirmCall", () => {
 
-        currentCalls = [];
+        currentCalls = currentCalls.map(c => {
+            return {
+                area: c.area,
+                status: "confirm"
+            };
+        });
 
         io.emit("updateCalls", currentCalls);
+
+        setTimeout(() => {
+
+            currentCalls = [];
+
+            io.emit("updateCalls", currentCalls);
+
+        }, 30000);
 
     });
 
@@ -58,7 +64,7 @@ io.on("connection", (socket) => {
 
 });
 
-server.listen(3000, () => {
+server.listen(process.env.PORT || 3000, () => {
 
     console.log("서버 실행중");
 

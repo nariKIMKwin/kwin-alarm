@@ -202,8 +202,12 @@ socket.on("updateCalls", (calls)=>{
 
     calls.forEach(call => {
 
-        html +=
-        "🔔 " + call.area + " 🔔<br>";
+if(call.status === "confirm"){
+    html += "✅ " + call.area + " 호출-확인<br>";
+}
+else{
+    html += "🔔 " + call.area + " 🔔<br>";
+}
 
     });
 
