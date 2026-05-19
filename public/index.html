@@ -96,6 +96,7 @@ button:hover{
     bottom:20px;
 
 }
+
 .cancel-btn{
 
     background:#666;
@@ -118,6 +119,7 @@ button:hover{
     font-size:18px;
 
 }
+
 </style>
 
 </head>
@@ -202,12 +204,18 @@ socket.on("updateCalls", (calls)=>{
 
     calls.forEach(call => {
 
-if(call.status === "confirm"){
-    html += "✅ " + call.area + " 호출-확인<br>";
-}
-else{
-    html += "🔔 " + call.area + " 🔔<br>";
-}
+        if(call.status === "confirm"){
+
+            html +=
+            "✅ " + call.area + " 호출-확인<br>";
+
+        }
+        else{
+
+            html +=
+            "🔔 " + call.area + " 🔔<br>";
+
+        }
 
     });
 
@@ -231,9 +239,16 @@ else{
 
     display.classList.add("active");
 
-    bellSound.currentTime = 0;
+    const hasCalling =
+    calls.some(call => call.status !== "confirm");
 
-    bellSound.play().catch(()=>{});
+    if(hasCalling){
+
+        bellSound.currentTime = 0;
+
+        bellSound.play().catch(()=>{});
+
+    }
 
 });
 
