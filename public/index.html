@@ -60,6 +60,8 @@ button:hover{
 
     flex-direction:column;
 
+    pointer-events:none;
+
 }
 
 .active{
@@ -95,11 +97,14 @@ button:hover{
     right:20px;
     bottom:20px;
 
+    z-index:9999;
+
 }
 
 .cancel-btn{
 
-    background:#666;
+    background:#666 !important;
+
     margin-right:10px;
 
     width:120px;
@@ -107,16 +112,24 @@ button:hover{
 
     font-size:18px;
 
+    position:relative;
+
+    z-index:10000;
+
 }
 
 .ok-btn{
 
-    background:#2e7d32;
+    background:#2e7d32 !important;
 
     width:120px;
     height:50px;
 
     font-size:18px;
+
+    position:relative;
+
+    z-index:10000;
 
 }
 
@@ -175,7 +188,6 @@ function callBell(name){
 }
 
 function confirmCall(){
-
     socket.emit("confirmCall");
 
 }
@@ -237,16 +249,21 @@ socket.on("updateCalls", (calls)=>{
 
     }
 
-    display.classList.add("active");
-
     const hasCalling =
     calls.some(call => call.status !== "confirm");
 
     if(hasCalling){
 
+        display.classList.add("active");
+
         bellSound.currentTime = 0;
 
         bellSound.play().catch(()=>{});
+
+    }
+    else{
+
+        display.classList.remove("active");
 
     }
 
