@@ -24,39 +24,52 @@ io.on("connection", (socket) => {
 
     socket.on("setStatus", (data) => {
 
+        if (!data || !data.name || !data.status) return;
+
         userStatus[data.name] = data.status;
 
         io.emit("updateStatus", userStatus);
 
     });
 
-    socket.on("callBell", (area) => {
+socket.on("callBell", (area) => {
 
-        if(userStatus[area] === "out"){
+    if (userStatus[area] === "out") {
 
-            io.emit("absentCall", {
-                area: area
-            });
-
-            return;
-        }
-
-        const exist = currentCalls.find(c => c.area === area);
-
-        if (exist) {
-            return;
-        }
-
-        const item = {
+        io.emit("absentCall", {
             area: area,
-            status: "call"
-        };
+            status: "out"
+        });
 
-        currentCalls.push(item);
+        return;
+    }
 
-        io.emit("updateCalls", currentCalls);
+    if (userStatus[area] === "leave") {
 
-    });
+        io.emit("absentCall", {
+            area: area,
+            status: "leave"
+        });
+
+        return;
+    }
+
+    const exist = currentCalls.find(c => c.area === area);
+
+    if (exist) {
+        return;
+    }
+
+    const item = {
+        area: area,
+        status: "call"
+    };
+
+    currentCalls.push(item);
+
+    io.emit("updateCalls", currentCalls);
+
+});
 
     socket.on("confirmCall", () => {
 
@@ -72,7 +85,6 @@ io.on("connection", (socket) => {
         setTimeout(() => {
 
             currentCalls = [];
-
             io.emit("updateCalls", currentCalls);
 
         }, 30000);
@@ -84,13 +96,12 @@ io.on("connection", (socket) => {
         currentCalls = [];
 
         io.emit("cancelCall");
+        io.emit("updateCalls", currentCalls);
 
     });
 
 });
 
 server.listen(process.env.PORT || 3000, () => {
-
     console.log("서버 실행중");
-
 });
