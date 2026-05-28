@@ -2,142 +2,23 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>KWIN - 대표님</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>케이윈 업무 지시 시스템</title>
 
-<style>
-body{
-    margin:0;
-    padding:50px;
-    font-family:Arial;
-    background:#111;
-    color:white;
-    text-align:center;
-}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-h1{
-    margin-bottom:50px;
-    font-size:50px;
-}
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
 
-.buttons{
-    margin-bottom:30px;
-}
-
-.person{
-    display:inline-block;
-    margin:40px;
-}
-
-.top-bar{
-    position:relative;
-    display:flex;
-    align-items:center;
-    margin-bottom:100px;
-}
-
-.top-bar h1{
-    top:80px;
-    position:absolute;
-    left:50%;
-    transform:translateX(-50%);
-    margin:0;
-    width:100%;
-    text-align:center;
-}
-
-.logo{
-    width:100%;
-    max-width:220px;
-    height:auto;
-    margin-bottom:10px;
-}
-
-button{
-    width:220px;
-    height:90px;
-    font-size:28px;
-    border:none;
-    border-radius:15px;
-    background:#1976d2;
-    color:white;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#0d47a1;
-}
-
-.status-box{
-    margin-top:20px;
-    font-size:22px;
-}
-
-.status-btn{
-    cursor:pointer;
-    margin:0 10px;
-    user-select:none;
-}
-
-.active-status{
-    font-weight:bold;
-}
-
-#display{
-    width:100%;
-    height:400px;
-    border-radius:30px;
-    background:#222;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:120px;
-    font-weight:bold;
-    transition:0.3s;
-    flex-direction:column;
-    pointer-events:none;
-}
-
-.active{
-    background:#3a3a3a !important;
-    box-shadow:0 0 40px rgba(255,255,255,0.2);
-    animation:flash 1s infinite;
-}
-
-@keyframes flash{
-    0%{ opacity:1; }
-    50%{ opacity:0.5; }
-    100%{ opacity:1; }
-}
-
-.admin-buttons{
-    position:fixed;
-    right:20px;
-    bottom:20px;
-    z-index:9999;
-}
-
-.cancel-btn{
-    background:#666 !important;
-    margin-right:10px;
-    width:120px;
-    height:50px;
-    font-size:18px;
-}
-
-.ok-btn{
-    background:#2e7d32 !important;
-    width:120px;
-    height:50px;
-    font-size:18px;
-}
-</style>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="screensaver.css">
 </head>
 
 <body>
 
 <div class="top-bar">
     <img src="logo.png" class="logo">
-    <h1>케이윈 업무 관리 시스템</h1>
+    <h1></h1>
 </div>
 
 <div class="buttons">
@@ -187,211 +68,40 @@ button:hover{
     <source src="bell.mp3" type="audio/mpeg">
 </audio>
 
+<div id="screenSaver" class="screen-saver">
+
+    <div class="screen-content">
+
+        <div class="screen-left">
+            <img src="logo.png" class="screen-logo">
+
+            <div class="screen-line"></div>
+
+            <div class="screen-slogan">
+                함께 움직이면<br>
+                더 빠르게 도착합니다.
+            </div>
+        </div>
+
+        <div class="screen-divider"></div>
+
+        <div class="screen-right">
+            <div class="screen-date" id="screenDate"></div>
+            <div class="screen-time-line"></div>
+            <div class="screen-time" id="screenTime"></div>
+        </div>
+
+    </div>
+
+    <div class="screen-footer">
+        KWIN Smart Work Display
+    </div>
+
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
-
-<script>
-const socket = io();
-
-const display = document.getElementById("display");
-const bellSound = document.getElementById("bellSound");
-
-function callBell(name){
-    socket.emit("callBell", name);
-}
-
-function setStatus(name, status){
-    socket.emit("setStatus", {
-        name: name,
-        status: status
-    });
-}
-
-function confirmCall(){
-    socket.emit("confirmCall");
-}
-
-function cancelCall(){
-    socket.emit("cancelCall");
-}
-
-function addLongPressEvent(name){
-
-    const outBtn = document.getElementById(name + "_out");
-
-    let timer = null;
-    let isLongPress = false;
-
-    outBtn.addEventListener("mousedown", () => {
-        isLongPress = false;
-
-        timer = setTimeout(() => {
-            isLongPress = true;
-            setStatus(name, "leave");
-        }, 2000);
-    });
-
-    outBtn.addEventListener("mouseup", () => {
-        clearTimeout(timer);
-
-        if (!isLongPress) {
-            setStatus(name, "out");
-        }
-    });
-
-    outBtn.addEventListener("mouseleave", () => {
-        clearTimeout(timer);
-    });
-
-    outBtn.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-
-        isLongPress = false;
-
-        timer = setTimeout(() => {
-            isLongPress = true;
-            setStatus(name, "leave");
-        }, 3000);
-    });
-
-    outBtn.addEventListener("touchend", () => {
-        clearTimeout(timer);
-
-        if (!isLongPress) {
-            setStatus(name, "out");
-        }
-    });
-}
-
-addLongPressEvent("김은하 실장");
-addLongPressEvent("이유빈 과장");
-addLongPressEvent("김나리 과장");
-addLongPressEvent("박규용 과장");
-
-socket.on("updateStatus", (statusData) => {
-
-    Object.keys(statusData).forEach(name => {
-
-        const inBtn = document.getElementById(name + "_in");
-        const outBtn = document.getElementById(name + "_out");
-
-        inBtn.classList.remove("active-status");
-        outBtn.classList.remove("active-status");
-
-        if (statusData[name] === "in") {
-
-            inBtn.innerHTML = "🟢 재실";
-            outBtn.innerHTML = "⚪ 부재중";
-
-            inBtn.classList.add("active-status");
-
-        } else if (statusData[name] === "out") {
-
-            inBtn.innerHTML = "⚪ 재실";
-            outBtn.innerHTML = "🟢 부재중";
-
-            outBtn.classList.add("active-status");
-
-        } else if (statusData[name] === "leave") {
-
-            inBtn.innerHTML = "⚪ 재실";
-            outBtn.innerHTML = "🟢 연차";
-
-            outBtn.classList.add("active-status");
-
-        }
-
-    });
-
-});
-
-socket.on("absentCall", (data) => {
-
-    if (data.status === "leave") {
-
-        display.innerHTML = "🏠🕺 " + data.area + "<br>연차입니다";
-
-    } else {
-
-        display.innerHTML = "🚪🚶 " + data.area + "<br>부재중입니다";
-
-    }
-
-    display.classList.remove("active");
-    display.style.fontSize = "90px";
-
-    // 3초 후 대기중 복귀
-    setTimeout(() => {
-
-        display.innerHTML = "대기중";
-        display.style.fontSize = "120px";
-
-    }, 3000);
-
-});
-
-socket.on("updateCalls", (calls) => {
-
-    if (calls.length === 0) {
-
-        display.innerHTML = "대기중";
-        display.classList.remove("active");
-        display.style.fontSize = "120px";
-
-        return;
-    }
-
-    let html = "";
-
-    calls.forEach(call => {
-
-        if (call.status === "confirm") {
-            html += "✅ " + call.area + " 호출-확인<br>";
-        } else {
-            html += "🔔 " + call.area + " 🔔<br>";
-        }
-
-    });
-
-    display.innerHTML = html;
-
-    if (calls.length == 1) {
-        display.style.fontSize = "120px";
-    } else if (calls.length == 2) {
-        display.style.fontSize = "90px";
-    } else {
-        display.style.fontSize = "65px";
-    }
-
-    const hasCalling = calls.some(call => call.status !== "confirm");
-
-    if (hasCalling) {
-
-        display.classList.add("active");
-
-        bellSound.currentTime = 0;
-        bellSound.play().catch(() => {});
-
-    } else {
-
-        display.classList.remove("active");
-
-    }
-
-});
-
-socket.on("cancelCall", () => {
-
-    display.innerHTML = "호출 취소";
-    display.classList.remove("active");
-    display.style.fontSize = "100px";
-
-    setTimeout(() => {
-        display.innerHTML = "대기중";
-        display.style.fontSize = "120px";
-    }, 3000);
-
-});
-</script>
+<script src="app.js"></script>
+<script src="screensaver.js"></script>
 
 </body>
 </html>
