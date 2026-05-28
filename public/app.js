@@ -80,6 +80,26 @@ function cancelCall(){
     socket.emit("cancelCall");
 }
 
+function isMobile(){
+    return window.innerWidth <= 768;
+}
+function setDisplayFont(pcSize, mobileVw, maxPx){
+
+    if(isMobile()){
+
+        const vwSize = window.innerWidth * (mobileVw / 100);
+        const finalSize = Math.min(vwSize, maxPx);
+
+        display.style.setProperty("font-size", finalSize + "px", "important");
+
+    }
+    else{
+
+        display.style.setProperty("font-size", pcSize, "important");
+
+    }
+
+}
 function addLongPressEvent(name){
 
     const outBtn = document.getElementById(name + "_out");
@@ -98,6 +118,7 @@ function addLongPressEvent(name){
         timer = setTimeout(() => {
 
             isLongPress = true;
+
             setStatus(name, "leave");
 
         }, 2000);
@@ -109,13 +130,17 @@ function addLongPressEvent(name){
         clearTimeout(timer);
 
         if(!isLongPress){
+
             setStatus(name, "out");
+
         }
 
     });
 
     outBtn.addEventListener("mouseleave", () => {
+
         clearTimeout(timer);
+
     });
 
     outBtn.addEventListener("touchstart", (e) => {
@@ -127,6 +152,7 @@ function addLongPressEvent(name){
         timer = setTimeout(() => {
 
             isLongPress = true;
+
             setStatus(name, "leave");
 
         }, 3000);
@@ -138,7 +164,9 @@ function addLongPressEvent(name){
         clearTimeout(timer);
 
         if(!isLongPress){
+
             setStatus(name, "out");
+
         }
 
     });
@@ -146,7 +174,9 @@ function addLongPressEvent(name){
 }
 
 names.forEach(name => {
+
     addLongPressEvent(name);
+
 });
 
 socket.on("updateStatus", (statusData) => {
@@ -195,7 +225,9 @@ socket.on("updateStatus", (statusData) => {
 socket.on("absentCall", (data) => {
 
     if(screenSaver){
+
         screenSaver.classList.remove("active");
+
     }
 
     if(data.status === "leave"){
@@ -212,12 +244,14 @@ socket.on("absentCall", (data) => {
     }
 
     display.classList.remove("active");
-    display.style.fontSize = "90px";
+
+    setDisplayFont("90px", 8.5, 52);
 
     setTimeout(() => {
 
         display.innerHTML = "대기중";
-        display.style.fontSize = "120px";
+
+        setDisplayFont("120px", 15, 72);
 
     }, 3000);
 
@@ -226,14 +260,18 @@ socket.on("absentCall", (data) => {
 socket.on("updateCalls", (calls) => {
 
     if(calls.length > 0 && screenSaver){
+
         screenSaver.classList.remove("active");
+
     }
 
     if(calls.length === 0){
 
         display.innerHTML = "대기중";
+
         display.classList.remove("active");
-        display.style.fontSize = "120px";
+
+        setDisplayFont("120px", 15, 72);
 
         return;
     }
@@ -261,17 +299,17 @@ socket.on("updateCalls", (calls) => {
 
     if(calls.length === 1){
 
-        display.style.fontSize = "120px";
+        setDisplayFont("120px", 8.5, 72);
 
     }
     else if(calls.length === 2){
 
-        display.style.fontSize = "90px";
+        setDisplayFont("90px", 8.5, 52);
 
     }
     else{
 
-        display.style.fontSize = "65px";
+        setDisplayFont("65px", 8.5, 40);
 
     }
 
@@ -302,20 +340,22 @@ socket.on("updateCalls", (calls) => {
 socket.on("cancelCall", () => {
 
     if(screenSaver){
+
         screenSaver.classList.remove("active");
+
     }
 
     display.innerHTML = "호출 취소";
 
     display.classList.remove("active");
 
-    display.style.fontSize = "100px";
+    setDisplayFont("100px", 13, 60);
 
     setTimeout(() => {
 
         display.innerHTML = "대기중";
 
-        display.style.fontSize = "120px";
+        setDisplayFont("120px", 15, 72);
 
     }, 3000);
 
