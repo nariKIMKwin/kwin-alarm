@@ -11,6 +11,56 @@ const names = [
     "박규용 과장"
 ];
 
+function resizeApp(){
+
+    const app = document.getElementById("appScale");
+
+    if(!app){
+        return;
+    }
+
+    // 모바일
+    if(window.innerWidth <= 768){
+
+        app.style.width = "100%";
+        app.style.height = "auto";
+
+        app.style.position = "relative";
+
+        app.style.transform = "none";
+
+        app.style.left = "0";
+        app.style.top = "0";
+
+        return;
+    }
+
+    // PC / TV
+    const baseWidth = 1920;
+    const baseHeight = 1080;
+
+    const scaleX = window.innerWidth / baseWidth;
+    const scaleY = window.innerHeight / baseHeight;
+
+    const scale = Math.min(scaleX, scaleY);
+
+    app.style.width = baseWidth + "px";
+    app.style.height = baseHeight + "px";
+
+    app.style.position = "absolute";
+
+    app.style.transform = `scale(${scale})`;
+
+    app.style.left =
+        ((window.innerWidth - (baseWidth * scale)) / 2) + "px";
+
+    app.style.top =
+        ((window.innerHeight - (baseHeight * scale)) / 2) + "px";
+}
+
+window.addEventListener("resize", resizeApp);
+window.addEventListener("load", resizeApp);
+
 function callBell(name){
     socket.emit("callBell", name);
 }
@@ -175,7 +225,6 @@ socket.on("absentCall", (data) => {
 
 socket.on("updateCalls", (calls) => {
 
-    // 호출 오면 화면보호기 자동 종료
     if(calls.length > 0 && screenSaver){
         screenSaver.classList.remove("active");
     }
@@ -271,3 +320,5 @@ socket.on("cancelCall", () => {
     }, 3000);
 
 });
+
+resizeApp();
