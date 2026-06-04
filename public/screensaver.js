@@ -68,4 +68,54 @@ const colon = ":";
     updateDateTime();
     setInterval(updateDateTime, 1000);
 
+    const screenSlogan = document.getElementById("screenSlogan");
+
+    if (screenSlogan) {
+        const savedSlogan = localStorage.getItem("kwinScreenSlogan");
+
+        if (savedSlogan) {
+            screenSlogan.innerHTML = savedSlogan.replace(/\n/g, "<br>");
+        }
+
+        let sloganPressTimer = null;
+
+        function editSlogan() {
+            const currentText = screenSlogan.innerText.trim();
+
+            const newText = prompt("화면 문구를 수정하세요", currentText);
+
+            if (newText !== null && newText.trim() !== "") {
+                localStorage.setItem("kwinScreenSlogan", newText.trim());
+                screenSlogan.innerHTML = newText.trim().replace(/\n/g, "<br>");
+            }
+        }
+
+        function startSloganPress(e) {
+            e.stopPropagation();
+            clearTimeout(sloganPressTimer);
+
+            sloganPressTimer = setTimeout(() => {
+                editSlogan();
+            }, 1000);
+        }
+
+        function cancelSloganPress(e) {
+            e.stopPropagation();
+            clearTimeout(sloganPressTimer);
+        }
+
+        screenSlogan.addEventListener("mousedown", startSloganPress);
+        screenSlogan.addEventListener("mouseup", cancelSloganPress);
+        screenSlogan.addEventListener("mouseleave", cancelSloganPress);
+
+        screenSlogan.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            startSloganPress(e);
+        });
+
+        screenSlogan.addEventListener("touchend", cancelSloganPress);
+    }
+
+
+
 });
