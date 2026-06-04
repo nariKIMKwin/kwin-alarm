@@ -1,16 +1,13 @@
 const express = require("express");
 const http = require("http");
-const fs = require("fs");
-const path = require("path");
 const { Server } = require("socket.io");
+const { Pool } = require("pg");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static("public"));
-
-const STATUS_FILE = path.join(__dirname, "status.json");
 
 const defaultStatus = {
     "김은하 실장": "in",
@@ -19,47 +16,80 @@ const defaultStatus = {
     "박규용 과장": "in"
 };
 
-function loadStatus(){
-    try{
-        if(fs.existsSync(STATUS_FILE)){
-            return JSON.parse(fs.readFileSync(STATUS_FILE, "utf8"));
-        }
-    }catch(e){
-        console.log("상태 불러오기 실패");
-    }
+let currentCalls = [];
+let userStatus = {};
 
-    return defaultStatus;
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
+
+async function initStatusTable() {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS user_status (
+            name TEXT PRIMARY KEY,
+            status TEXT NOT NULL
+        )
+    `);
+
+    for (const name of Object.keys(defaultStatus)) {
+        await pool.query(
+            `
+            INSERT INTO user_status (name, status)
+            VALUES ($1, $2)
+            ON CONFLICT (name) DO NOTHING
+            `,
+            [name, defaultStatus[name]]
+        );
+    }
 }
 
-function saveStatus(){
-    fs.writeFileSync(
-        STATUS_FILE,
-        JSON.stringify(userStatus, null, 2),
-        "utf8"
+async function loadStatus() {
+    const result = await pool.query("SELECT name, status FROM user_status");
+
+    const status = {};
+
+    result.rows.forEach(row => {
+        status[row.name] = row.status;
+    });
+
+    return status;
+}
+
+async function saveStatus(name, status) {
+    await pool.query(
+        `
+        INSERT INTO user_status (name, status)
+        VALUES ($1, $2)
+        ON CONFLICT (name)
+        DO UPDATE SET status = EXCLUDED.status
+        `,
+        [name, status]
     );
 }
-
-let currentCalls = [];
-let userStatus = loadStatus();
 
 io.on("connection", (socket) => {
 
     socket.emit("updateCalls", currentCalls);
     socket.emit("updateStatus", userStatus);
 
-    socket.on("setStatus", (data) => {
+    socket.on("setStatus", async (data) => {
+        try {
+            userStatus[data.name] = data.status;
 
-        userStatus[data.name] = data.status;
-        saveStatus();
+            await saveStatus(data.name, data.status);
 
-        io.emit("updateStatus", userStatus);
-
+            io.emit("updateStatus", userStatus);
+        } catch (e) {
+            console.log("상태 저장 실패:", e);
+        }
     });
 
     socket.on("callBell", (area) => {
 
-        if(userStatus[area] === "out" || userStatus[area] === "leave"){
-
+        if (userStatus[area] === "out" || userStatus[area] === "leave") {
             io.emit("absentCall", {
                 area: area,
                 status: userStatus[area]
@@ -70,7 +100,7 @@ io.on("connection", (socket) => {
 
         const exist = currentCalls.find(c => c.area === area);
 
-        if(exist){
+        if (exist) {
             return;
         }
 
@@ -80,7 +110,6 @@ io.on("connection", (socket) => {
         });
 
         io.emit("updateCalls", currentCalls);
-
     });
 
     socket.on("confirmCall", () => {
@@ -96,18 +125,26 @@ io.on("connection", (socket) => {
             currentCalls = [];
             io.emit("updateCalls", currentCalls);
         }, 30000);
-
     });
 
     socket.on("cancelCall", () => {
-
         currentCalls = [];
         io.emit("cancelCall");
-
     });
-
 });
 
-server.listen(process.env.PORT || 3000, () => {
-    console.log("서버 실행중");
-});
+async function startServer() {
+    try {
+        await initStatusTable();
+
+        userStatus = await loadStatus();
+
+        server.listen(process.env.PORT || 3000, () => {
+            console.log("서버 실행중");
+        });
+    } catch (e) {
+        console.log("서버 시작 실패:", e);
+    }
+}
+
+startServer();
